@@ -8,8 +8,10 @@ const {
   WEBHOOK_VERIFY_TOKEN,
   API_TOKEN,
   BUSINESS_PHONE,
+  BUSINESS_ACCOUNT_ID,
   API_VERSION,
-  PORT
+  PORT,
+  ENABLE_TEST_ENDPOINT
 } = process.env;
 
 // Validación básica de variables obligatorias
@@ -23,6 +25,8 @@ export default {
   WEBHOOK_VERIFY_TOKEN,
   API_TOKEN,
   BUSINESS_PHONE,
+  BUSINESS_ACCOUNT_ID,
   API_VERSION,
   PORT: parseInt(PORT, 10) || 3000,
+  ENABLE_TEST_ENDPOINT: ENABLE_TEST_ENDPOINT === 'true'
 };

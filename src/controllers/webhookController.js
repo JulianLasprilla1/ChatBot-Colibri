@@ -3,6 +3,7 @@
  */
 import config from '../config/env.js';
 import messageHandler from '../services/messageHandler.js';
+import logger from '../logger/index.js';
 
 class WebhookController {
   /**
@@ -12,13 +13,31 @@ class WebhookController {
    * - Responde 200 siempre para evitar reintentos.
    */
   async handleIncoming(req, res) {
-    const message    = req.body.entry?.[0]?.changes[0]?.value?.messages?.[0];
-    const senderInfo = req.body.entry?.[0]?.changes[0]?.value?.contacts?.[0];
+    const entry = req.body.entry?.[0];
+    const change = entry?.changes?.[0];
+    const value = change?.value;
+    const message = value?.messages?.[0];
+    const senderInfo = value?.contacts?.[0];
 
-    if (message) {
-      await messageHandler.handleIncomingMessage(message, senderInfo);
+    try {
+      if (message) {
+        // Mostrar en consola el mensaje recibido para monitoreo en modo manual
+        console.log(`[WhatsApp] Mensaje recibido de ${message.from}: ${message.text?.body || '[no-text]'}`);
+        // Mensaje de usuario: procesar y loguear como INFO
+        logger.info('[WebhookController] Mensaje recibido tipo=%s de=%s', message.type, message.from);
+        await messageHandler.handleIncomingMessage(message, senderInfo);
+      } else if (value?.statuses) {
+        // Evento de status (entregado, leído, etc): loguear como DEBUG
+        logger.debug('[WebhookController] Evento status recibido: %o', value.statuses);
+      } else if (value) {
+        // Otro tipo de evento (ej: cambios de perfil, etc): loguear como DEBUG
+        logger.debug('[WebhookController] Evento no-mensaje recibido: %o', value);
+      } // Si value es undefined, probablemente POST vacío o formato incorrecto
+      res.sendStatus(200);
+    } catch (err) {
+      logger.error('[WebhookController] Error processing webhook', err);
+      res.sendStatus(200);
     }
-    res.sendStatus(200);
   }
 
   /**
@@ -32,7 +51,7 @@ class WebhookController {
     const challenge = req.query['hub.challenge'];
 
     if (mode === 'subscribe' && token === config.WEBHOOK_VERIFY_TOKEN) {
-      console.log('Webhook verified successfully!');
+  logger.info('Webhook verified successfully!');
       res.status(200).send(challenge);
     } else {
       res.sendStatus(403);

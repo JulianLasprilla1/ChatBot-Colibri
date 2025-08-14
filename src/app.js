@@ -1,3 +1,5 @@
+import logger from './logger/index.js';
+import adminRoutes from './routes/adminRoutes.js';
 /**
  * @fileoverview Punto de entrada de la aplicación Express.
  *                Configura middleware, rutas y servidor HTTP.
@@ -6,6 +8,10 @@
 import express from 'express';
 import config from './config/env.js';
 import webhookRoutes from './routes/webhookRoutes.js';
+import testRoutes from './routes/testRoutes.js';
+
+
+import chatwoot from './services/chatwootService.js';
 
 const app = express();
 
@@ -16,7 +22,13 @@ app.use(express.json());
  * Rutas principales de la aplicación.
  * Todas las rutas definidas en webhookRoutes se montan en la raíz '/'.
  */
+
 app.use('/', webhookRoutes);
+if (config.ENABLE_TEST_ENDPOINT) {
+  app.use('/', testRoutes);
+}
+// Habilita el endpoint manual para enviar mensajes desde backend
+app.use('/', adminRoutes);
 
 /**
  * Ruta de diagnóstico en la raíz.
@@ -37,6 +49,12 @@ Checkout README.md to start.</pre>`);
  *
  * @fires express#listen
  */
+chatwoot.configure({
+  baseUrl: process.env.CHATWOOT_BASE_URL,
+  token: process.env.CHATWOOT_TOKEN,
+  inboxId: process.env.CHATWOOT_INBOX_ID
+});
+
 app.listen(config.PORT, () => {
-  console.log(`Server is listening on port: ${config.PORT}`);
+  logger.info(`Server is listening on port: ${config.PORT}`);
 });

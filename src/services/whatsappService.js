@@ -3,8 +3,25 @@
  *               a través de HTTP (sendToWhatsApp). Incluye logging para depuración.
  */
 import sendToWhatsApp from '../httpRequest/sendToWhatsApp.js';
+import logger from '../logger/index.js';
 
 class WhatsAppService {
+  async sendTypingOn(to) {
+    // WhatsApp Cloud API no tiene un endpoint oficial para 'typing', pero se puede simular con 'action' si está disponible
+    // Algunos proveedores usan un mensaje especial, aquí se implementa el estándar de Cloud API
+    // Si no es soportado, simplemente ignora el error
+    const data = {
+      messaging_product: 'whatsapp',
+      to,
+      type: 'action',
+      action: { typing: true }
+    };
+    try {
+      await sendToWhatsApp(data);
+    } catch (e) {
+      // Ignorar errores de typing
+    }
+  }
   async sendMessage(to, body, messageId) {
     const data = {
       messaging_product: 'whatsapp',
@@ -12,12 +29,12 @@ class WhatsAppService {
       text: { body },
       ...(messageId && { context: { message_id: messageId } })
     };
-    console.log('[WhatsAppService] sendMessage payload:', data);
+  logger.debug('[WhatsAppService] sendMessage payload %o', data);
     try {
       const resp = await sendToWhatsApp(data);
-      console.log('[WhatsAppService] sendMessage response:', resp);
+  logger.debug('[WhatsAppService] sendMessage response %o', resp);
     } catch (err) {
-      console.error('[WhatsAppService] sendMessage error:', err);
+  logger.error('[WhatsAppService] sendMessage error', err);
     }
   }
 
@@ -32,12 +49,12 @@ class WhatsAppService {
         action: { buttons }
       }
     };
-    console.log('[WhatsAppService] sendInteractiveButtons payload:', data);
+  logger.debug('[WhatsAppService] sendInteractiveButtons payload %o', data);
     try {
       const resp = await sendToWhatsApp(data);
-      console.log('[WhatsAppService] sendInteractiveButtons response:', resp);
+  logger.debug('[WhatsAppService] sendInteractiveButtons response %o', resp);
     } catch (err) {
-      console.error('[WhatsAppService] sendInteractiveButtons error:', err);
+  logger.error('[WhatsAppService] sendInteractiveButtons error', err);
     }
   }
 
@@ -71,12 +88,12 @@ class WhatsAppService {
       type,
       ...mediaObject
     };
-    console.log('[WhatsAppService] sendMediaMessage payload:', data);
+  logger.debug('[WhatsAppService] sendMediaMessage payload %o', data);
     try {
       const resp = await sendToWhatsApp(data);
-      console.log('[WhatsAppService] sendMediaMessage response:', resp);
+  logger.debug('[WhatsAppService] sendMediaMessage response %o', resp);
     } catch (err) {
-      console.error('[WhatsAppService] sendMediaMessage error:', err);
+  logger.error('[WhatsAppService] sendMediaMessage error', err);
     }
   }
 
@@ -87,12 +104,12 @@ class WhatsAppService {
       type: 'location',
       location: { latitude, longitude, name, address }
     };
-    console.log('[WhatsAppService] sendLocationMessage payload:', data);
+  logger.debug('[WhatsAppService] sendLocationMessage payload %o', data);
     try {
       const resp = await sendToWhatsApp(data);
-      console.log('[WhatsAppService] sendLocationMessage response:', resp);
+  logger.debug('[WhatsAppService] sendLocationMessage response %o', resp);
     } catch (err) {
-      console.error('[WhatsAppService] sendLocationMessage error:', err);
+  logger.error('[WhatsAppService] sendLocationMessage error', err);
     }
   }
 
@@ -102,14 +119,15 @@ class WhatsAppService {
       status: 'read',
       message_id: messageId
     };
-    console.log('[WhatsAppService] markAsRead payload:', data);
+    logger.debug('[WhatsAppService] markAsRead payload %o', data);
     try {
       const resp = await sendToWhatsApp(data);
-      console.log('[WhatsAppService] markAsRead response:', resp);
+      logger.debug('[WhatsAppService] markAsRead response %o', resp);
     } catch (err) {
-      console.error('[WhatsAppService] markAsRead error:', err);
+      logger.error('[WhatsAppService] markAsRead error', err);
     }
   }
 }
+
 
 export default new WhatsAppService();

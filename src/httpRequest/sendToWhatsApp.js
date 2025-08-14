@@ -4,6 +4,7 @@
  */
 import axios from 'axios';
 import config from '../config/env.js';
+import logger from '../logger/index.js';
 
 /**
  * Envía un objeto `data` como cuerpo JSON a la WhatsApp Cloud API.
@@ -25,7 +26,7 @@ export default async function sendToWhatsApp(data) {
     });
     return response.data;
   } catch (err) {
-    console.error('Error sending to WhatsApp:', err.response?.data || err.message);
+  logger.error('Error sending to WhatsApp', err.response?.data || err.message);
     throw err;
   }
 }
